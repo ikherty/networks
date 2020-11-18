@@ -1,29 +1,26 @@
 # server
 import socket
+import sys
 
-def get_ip_address():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    return s.getsockname()[0]
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_address = ('localhost', 10000)
+print('starting up on %s port %s' % server_address)
+sock.bind(server_address)
+sock.listen(1)
 
-if __name__ == "__main__":
-    sock = socket.socket()
-    print("IP: {}. Жду подключения...".format(get_ip_address()))
-    sock.bind(("", 9090))
-    sock.listen(1)
-    conn, addr = sock.accept()
+while True:
+    print('waiting for a connection')
+    connection, client_address = sock.accept()
     try:
-        print("Соединение установлено:", addr)
+        print('connection from', client_address)
         while True:
-            client_mes = conn.recv(1024).decode()
-            if not client_mes:
+            data = connection.recv(1024).decode()
+            print('received "%s"' % data)
+            if data:
+                print('sending data back to the client')
+                connection.sendall(data.encode())
+            else:
+                print('no more data from', client_address)
                 break
-            print("Клиент:", client_mes)
-            if client_mes == "Выход":
-                break
-            conn.send(input("Сервер: ").encode())
-        print("Соединение закрыто.")
-    except Exception as err:
-        print("Ошибка: ", err)
     finally:
-        conn.close()
+        connection.close()

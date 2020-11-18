@@ -1,27 +1,22 @@
 # client
 import socket
+import sys
 
-def get_ip_address():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    return s.getsockname()[0]
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_address = ('localhost', 10000)
+print('connecting to %s port %s' % server_address)
+sock.connect(server_address)
 
-if __name__ == "__main__":
-    sock = socket.socket()
-    try:
-        print("IP: {}.".format(get_ip_address()))
-        server_ip = input("Введите IP-адрес сервера (например, 192.168.0.3): ")
-        print("Подключаюсь к серверу...")
-        sock.connect((server_ip, 9090))
-        print("Соединение установлено!")
-        while True:
-            client_mes = input("Клиент: ")
-            sock.send(client_mes.encode())
-            if client_mes == "Выход":
-                break
-            server_mes = sock.recv(1024).decode()
-            print("Сервер:", server_mes)
-    except Exception as err:
-        print("Ошибка: ", err)
-    finally:
-        sock.close()
+try:
+    message = 'This is the message.  It will be repeated.'
+    print('sending "%s"' % message)
+    sock.sendall(message.encode())
+    amount_received = 0
+    amount_expected = len(message)
+    while amount_received < amount_expected:
+        data = sock.recv(1024).decode()
+        amount_received += len(data)
+        print('received "%s"' % data)
+finally:
+    print('closing socket')
+    sock.close()
